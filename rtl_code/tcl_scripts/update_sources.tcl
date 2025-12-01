@@ -2,58 +2,60 @@
 # Update Vivado source files from your RTL, SRC, and TB directories
 # -------------------------------------------------------------
 
-# Define your paths
-set rtl_path {C:/Users/Maximus/Documents/Tang-Nano-1k-FPGA-alarm-clock-LCD/rtl_code/rtl}
-set src_path {C:/Users/Maximus/Documents/Tang-Nano-1k-FPGA-alarm-clock-LCD/rtl_code/src}
-set tb_path  {C:/Users/Maximus/Documents/Tang-Nano-1k-FPGA-alarm-clock-LCD/rtl_code/tb}
-
-# Optional: remove existing files from filesets to avoid duplicates
-# Remove from sources fileset
-remove_files -fileset sources_1 [get_files -filter {FILE_TYPE == "Verilog" || FILE_TYPE == "SystemVerilog"}]
-# Remove from simulation fileset
-remove_files -fileset sim_1 [get_files -filter {FILE_TYPE == "Verilog" || FILE_TYPE == "SystemVerilog"}]
+set rtl_path {C:/Users/Maximus/Documents/ALARM_CLOCK/Tang-Nano-1k-FPGA-alarm-clock-LCD/rtl_code/}
+set src_path {C:/Users/Maximus/Documents/ALARM_CLOCK/fpga_projects/alarm_clock/src}
+set tb_path  {C:/Users/Maximus/Documents/ALARM_CLOCK/Tang-Nano-1k-FPGA-alarm-clock-LCD/rtl_code/tb}
 
 # -------------------------------------------------------------
-# Add RTL/SRC files to sources fileset
+# Remove existing files safely
 # -------------------------------------------------------------
-# Create sources_1 fileset if it doesn't exist
-if {![catch {get_fileset sources_1}]} {
-    puts "Fileset sources_1 already exists"
-} else {
-    create_fileset -fileset sources_1 -type "Sources"
+
+set srcFiles   [get_files -filter {FILE_TYPE == "Verilog" || FILE_TYPE == "SystemVerilog"} -of_objects [get_filesets sources_1]]
+if {[llength $srcFiles] > 0} {
+    remove_files -fileset sources_1 $srcFiles
 }
 
-# Add all .v and .sv files from rtl and src
-# add_files -norecurse -fileset sources_1 [glob -nocomplain ${rtl_path}/*.sv]
-# add_files -norecurse -fileset sources_1 [glob -nocomplain ${rtl_path}/*.v]
-add_files -norecurse -fileset sources_1 [glob -nocomplain ${src_path}/*.sv]
-# add_files -norecurse -fileset sources_1 [glob -nocomplain ${src_path}/*.v]
+set simFiles   [get_files -filter {FILE_TYPE == "Verilog" || FILE_TYPE == "SystemVerilog"} -of_objects [get_filesets sim_1]]
+if {[llength $simFiles] > 0} {
+    remove_files -fileset sim_1 $simFiles
+}
 
-# Update compile order for sources
+# -------------------------------------------------------------
+# Create sources_1 fileset if needed
+# -------------------------------------------------------------
+
+if {[catch {get_fileset sources_1}]} {
+    create_fileset -srcset sources_1
+} else {
+    puts "Fileset sources_1 already exists"
+}
+
+# Add your RTL/SRC files
+# add_files -norecurse -fileset sources_1 [glob -nocomplain ${rtl_path}/*.sv]
+add_files -norecurse -fileset sources_1 [glob -nocomplain ${src_path}/*.sv]
+
 update_compile_order -fileset sources_1
 
 # -------------------------------------------------------------
-# Add testbench files to simulation fileset
+# Create sim_1 fileset if needed
 # -------------------------------------------------------------
-# Create sim_1 fileset if it doesn't exist
-if {![catch {get_fileset sim_1}]} {
-    puts "Fileset sim_1 already exists"
+
+if {[catch {get_fileset sim_1}]} {
+    create_fileset -simset sim_1
 } else {
-    create_fileset -fileset sim_1 -type "Simulation Sources"
+    puts "Fileset sim_1 already exists"
 }
 
-# Add all .v and .sv files from tb folder
+# Add your TB files
 add_files -norecurse -fileset sim_1 [glob -nocomplain ${tb_path}/*.sv]
-# add_files -norecurse -fileset sim_1 [glob -nocomplain ${tb_path}/*.v]
 
-# Update compile order for simulation
 update_compile_order -fileset sim_1
 
 # -------------------------------------------------------------
-# Optional: display results
+# Output status
 # -------------------------------------------------------------
-puts "✅ Sources updated from: $rtl_path and $src_path"
+puts "✅ Sources updated"
 report_compile_order -fileset sources_1
 
-puts "✅ Testbench files updated from: $tb_path"
+puts "✅ Testbench updated"
 report_compile_order -fileset sim_1

@@ -1,0 +1,1 @@
+source C:/Users/Maximus/Documents/ALARM_CLOCK/Tang-Nano-1k-FPGA-alarm-clock-LCD/rtl_code/tcl_scripts/update_sources.tcl
